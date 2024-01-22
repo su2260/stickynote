@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Georgia', serif;
+        }
+
+        #sticky-note {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ffffcc; /* Less neon yellow */
+            padding: 20px;
+            border: 2px solid #666; /* Darker border color */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #resolution-text {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        #resolution-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .resolution-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .checkbox {
+            margin-right: 10px;
+        }
+
+        #delete-selected-button {
+            background-color: transparent;
+            color: #e74c3c; /* Red color */
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+
+        /* Style to make the button visually clickable */
+        #delete-selected-button:hover {
+            color: #c0392b; /* Darker red on hover */
+        }
+
+        #resolution-input {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        #save-button {
+            background-color: transparent;
+            color: #2e8b57; /* Darker green */
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        /* Style to make the button visually clickable */
+        #save-button:hover {
+            color: #3cb371; /* Slightly lighter green on hover */
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: #777; /* Subtle gray color for crossed-out text */
+        }
+    </style>
+</head>
+<body>
+    <div id="sticky-note">
+        <p id="resolution-text">2024 bucket list</p>
+        <ul id="resolution-list"></ul>
+        <textarea id="resolution-input" placeholder="Add your resolution"></textarea>
+        <button id="delete-selected-button">Delete Selected</button>
+        <button id="save-button">Save</button>
+    </div>
+
+    <script>
+        // Function to load saved content from local storage
+        function loadSavedContent() {
+            var savedContent = localStorage.getItem('stickyNoteContent');
+            if (savedContent) {
+                document.getElementById('resolution-list').innerHTML = savedContent;
+                restoreCheckboxState();
+            }
+        }
+
+        // Load saved content on page load
+        loadSavedContent();
+
+        document.getElementById('delete-selected-button').addEventListener('click', function() {
+            var checkboxes = document.getElementsByClassName('checkbox');
+
+            for (var i = checkboxes.length - 1; i >= 0; i--) {
+                if (checkboxes[i].checked) {
+                    var resolutionItem = checkboxes[i].closest('.resolution-item');
+                    resolutionItem.parentNode.removeChild(resolutionItem);
+                }
+            }
+
+            // Save updated content and checkbox states to local storage
+            saveContent();
+        });
+
+        document.getElementById('resolution-input').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                var resolutionList = document.getElementById('resolution-list');
+                var resolutionInput = document.getElementById('resolution-input');
+
+                // Create a new list item
+                var newResolution = document.createElement('li');
+                newResolution.className = 'resolution-item';
+
+                // Create a checkbox
+                var checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'checkbox';
+
+                // Create a span for the resolution text
+                var resolutionText = document.createElement('span');
+                resolutionText.textContent = resolutionInput.value;
+
+                // Append the checkbox and resolution text to the list item
+                newResolution.appendChild(checkbox);
+                newResolution.appendChild(resolutionText);
+
+                // Append the new resolution to the list
+                resolutionList.appendChild(newResolution);
+
+                // Save updated content and checkbox states to local storage
+                saveContent();
+
+                // Clear the input for the next resolution
+                resolutionInput.value = '';
+            }
+        });
+
+        document.getElementById('save-button').addEventListener('click', function() {
+            // Save content and checkbox states to local storage
+            saveContent();
+        });
+
+        // Function to save current content and checkbox states to local storage
+        function saveContent() {
+            var resolutionList = document.getElementById('resolution-list').innerHTML;
+            localStorage.setItem('stickyNoteContent', resolutionList);
+            saveCheckboxState();
+        }
+
+        // Function to restore checkbox states from local storage
+        function restoreCheckboxState() {
+            var checkboxes = document.getElementsByClassName('checkbox');
+            for (var i = 0; i < checkboxes.length; i++) {
+                var checkbox = checkboxes[i];
+                var checkboxId = checkbox.id;
+                var isChecked = localStorage.getItem(checkboxId);
+
+                if (isChecked === 'true') {
+                    checkbox.checked = true;
+                    checkbox.closest('.resolution-item').classList.add('completed');
+                }
+            }
+        }
+
+        // Function to save checkbox states to local storage
+        function saveCheckboxState() {
+            var checkboxes = document.getElementsByClassName('checkbox');
+            for (var i = 0; i < checkboxes.length; i++) {
+                var checkbox = checkboxes[i];
+                var checkboxId = checkbox.id;
+                var isChecked = checkbox.checked;
+
+                localStorage.setItem(checkboxId, isChecked);
+            }
+        }
+    </script>
+</body>
+</html>
